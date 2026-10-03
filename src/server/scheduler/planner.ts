@@ -18,6 +18,7 @@ import {
   type ShiftInstance,
 } from "@/lib/scheduling/duty";
 import { planRuns } from "@/lib/scheduling/plan";
+import { realCommunityConflict } from "@/server/groups/safety";
 
 const log = childLogger("scheduler.planner");
 
@@ -100,6 +101,10 @@ export async function ensurePlans(now = new Date(), only?: { scheduleId: string 
   for (const { schedule, group } of rows) {
     // Hard rules: only active private-simulation groups with automation switched on.
     if (group.type !== "PRIVATE_SIMULATION" || !group.active || !group.automationEnabled) continue;
+    if (await realCommunityConflict(group)) {
+      log.warn({ groupId: group.id }, "group points at the real community chat; not planning");
+      continue;
+    }
 
     const accounts = await connectedParticipants(group.id);
     if (accounts.length < 2) {

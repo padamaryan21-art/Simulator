@@ -16,6 +16,7 @@ import { isWorkerAlive } from "@/server/queues/workerStatus";
 import { activeInstance, quotaForShift } from "@/lib/scheduling/duty";
 import { getAutomationState } from "@/server/scheduler/control";
 import { accountSentInShift, dutyOf } from "@/server/scheduler/planner";
+import { realCommunityConflict } from "@/server/groups/safety";
 import { getSetting } from "@/server/settings/settings";
 import { TelegramServiceError } from "@/server/telegram/errors";
 import { sendImage, sendMessage } from "@/server/telegram/messages";
@@ -103,6 +104,16 @@ export async function runSender(sessionId: string, userId: string | null) {
       .from(conversationSessions)
       .where(eq(conversationSessions.id, sessionId));
     const [group] = await db.select().from(groups).where(eq(groups.id, session.groupId));
+    // Last line of defence: nothing from a simulation group is ever sent to the real community chat.
+    if (await realCommunityConflict(group)) {
+      await writeLog("error", "send", "Blocked: group points at the real community chat", {
+        sessionId,
+        groupId: group.id,
+      });
+      await cancelRemaining(sessionId, "Blocked: group points at the real community chat");
+      await finish(sessionId, "CANCELLED");
+      return;
+    }
     const settings = await getSetting("sending");
     const schedule = session.scheduleId
       ? (await db.select().from(schedules).where(eq(schedules.id, session.scheduleId)))[0]
