@@ -1,9 +1,7 @@
 import { asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { conversationSessions, groupParticipants, groups } from "@/db/schema";
-import { REAL_COMMUNITY_TARGET_MESSAGE } from "@/lib/telegram-links";
 import type { CreateGroupInput, UpdateGroupInput } from "@/validators/telegram";
-import { realCommunityConflict } from "./safety";
 
 export type GroupWithParticipants = typeof groups.$inferSelect & { participantIds: string[] };
 
@@ -41,16 +39,6 @@ async function setParticipants(groupId: string, personaIds: string[]) {
 
 export async function createGroup(input: CreateGroupInput) {
   const { participantIds, ...values } = input;
-  if (
-    (await realCommunityConflict({
-      id: "",
-      name: values.name,
-      type: values.type,
-      url: values.url ?? null,
-      telegramChatId: values.telegramChatId ?? null,
-    })) !== null
-  )
-    throw new GroupRuleError(REAL_COMMUNITY_TARGET_MESSAGE);
   const [row] = await db.insert(groups).values(values).returning();
   await setParticipants(row.id, participantIds);
   return row;
@@ -69,22 +57,6 @@ export async function updateGroup(id: string, input: UpdateGroupInput) {
   if (type === "REAL_COMMUNITY" && (automation || !approval)) {
     throw new GroupRuleError("REAL_COMMUNITY groups must require approval and cannot be automated");
   }
-
-  // A private group must not point at the real community's chat. Switching automation OFF or
-  // clearing the link stays allowed, so a mistaken link can always be repaired.
-  const merged = { ...existing, ...values };
-  if (
-    type !== "REAL_COMMUNITY" &&
-    (automation || values.url !== undefined || values.telegramChatId !== undefined) &&
-    (await realCommunityConflict({
-      id,
-      name: merged.name,
-      type,
-      url: merged.url ?? null,
-      telegramChatId: merged.telegramChatId ?? null,
-    })) !== null
-  )
-    throw new GroupRuleError(REAL_COMMUNITY_TARGET_MESSAGE);
 
   // A body with only participantIds has no columns to update (and Drizzle rejects an empty SET).
   const [row] = Object.keys(values).length

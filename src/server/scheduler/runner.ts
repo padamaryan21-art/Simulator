@@ -12,7 +12,6 @@ import { createConversation, startSend } from "@/server/conversations/service";
 import { writeLog } from "@/server/conversations/logs";
 import { getAutomationState } from "./control";
 import { isOnDuty } from "@/lib/scheduling/duty";
-import { realCommunityConflict } from "@/server/groups/safety";
 import { connectedParticipants, dutyOf, setRunStatus } from "./planner";
 
 const log = childLogger("scheduler.runner");
@@ -92,7 +91,6 @@ export async function executeRun(runId: string) {
   if (!group || group.type !== "PRIVATE_SIMULATION" || !group.active || !group.automationEnabled) {
     return skip("Group is not an automation-enabled private simulation");
   }
-  if (await realCommunityConflict(group)) return skip("Group points at the real community chat");
   if (!isOnDuty(dutyOf(schedule), new Date())) return skip("Off duty");
 
   await setRunStatus(run.id, "RUNNING");
