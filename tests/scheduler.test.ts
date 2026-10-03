@@ -233,3 +233,59 @@ describe("planRuns", () => {
     expect(runs.every((r) => r.runAt >= night.start && r.runAt <= night.end)).toBe(true);
   });
 });
+
+describe("a duty calendar read back from the database (regression)", () => {
+  // The dashboard saves "Day shift" as just { type: "DAY" }. Reading it back used to attach
+  // startMinute/endMinute = undefined, which overrode the preset hours and made every shift invalid,
+  // so nothing was ever planned.
+  const stored = Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map((d) => [String(d), { type: "DAY" }]));
+  const tz = "Asia/Manila";
+  const noon = new Date("2026-10-03T04:00:00Z"); // 12:00 in Manila, a Saturday
+
+  it("keeps the preset hours of a plain Day shift", async () => {
+    const { parseDutyConfig, activeInstance, upcomingInstances } =
+      await import("@/lib/scheduling/duty");
+    const cfg = parseDutyConfig(tz, stored, {});
+    expect(cfg.weekly["6"]).toEqual({ type: "DAY" }); // no undefined hour keys
+    const active = activeInstance(cfg, noon)!;
+    expect(active.start.toISOString()).toBe("2026-10-03T01:00:00.000Z"); // 09:00 Manila
+    expect(active.end.toISOString()).toBe("2026-10-03T13:00:00.000Z"); // 21:00 Manila
+    expect(upcomingInstances(cfg, noon).length).toBeGreaterThan(0);
+  });
+
+  it("keeps the preset hours of a plain Night shift, which ends the next morning", async () => {
+    const { parseDutyConfig, shiftInstance } = await import("@/lib/scheduling/duty");
+    const night = Object.fromEntries(Object.keys(stored).map((d) => [d, { type: "NIGHT" }]));
+    const i = shiftInstance(parseDutyConfig(tz, night, {}), "2026-10-03")!;
+    expect(i.start.toISOString()).toBe("2026-10-03T13:00:00.000Z"); // 21:00 Manila
+    expect(i.end.toISOString()).toBe("2026-10-04T01:00:00.000Z"); // 09:00 next day
+  });
+
+  it("still honours hours that were really saved, and custom shifts", async () => {
+    const { parseDutyConfig, shiftInstance } = await import("@/lib/scheduling/duty");
+    const cfg = parseDutyConfig(
+      tz,
+      { "6": { type: "DAY", startMinute: 600, endMinute: 1080 } },
+      { "2026-10-03": { type: "CUSTOM", startMinute: 480, endMinute: 720 } },
+    );
+    const custom = shiftInstance(cfg, "2026-10-03")!; // the override wins
+    expect(custom.start.toISOString()).toBe("2026-10-03T00:00:00.000Z"); // 08:00 Manila
+    expect(custom.end.toISOString()).toBe("2026-10-03T04:00:00.000Z"); // 12:00 Manila
+    const noOverride = parseDutyConfig(
+      tz,
+      { "6": { type: "DAY", startMinute: 600, endMinute: 1080 } },
+      {},
+    );
+    expect(shiftInstance(noOverride, "2026-10-03")!.start.toISOString()).toBe(
+      "2026-10-03T02:00:00.000Z",
+    ); // 10:00 Manila
+  });
+
+  it("a day with no rule, or OFF, has no shift", async () => {
+    const { parseDutyConfig, shiftInstance } = await import("@/lib/scheduling/duty");
+    expect(
+      shiftInstance(parseDutyConfig(tz, { "6": { type: "OFF" } }, {}), "2026-10-03"),
+    ).toBeNull();
+    expect(shiftInstance(parseDutyConfig(tz, {}, {}), "2026-10-03")).toBeNull();
+  });
+});

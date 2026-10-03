@@ -38,7 +38,12 @@ export function shiftInstance(cfg: DutyConfig, date: string): ShiftInstance | nu
   const rule = resolveRule(cfg, date);
   if (rule.type === "OFF") return null;
   const { startMinute, endMinute } =
-    rule.type === "CUSTOM" ? rule : { ...SHIFT_PRESETS[rule.type], ...rule };
+    rule.type === "CUSTOM"
+      ? rule
+      : {
+          startMinute: rule.startMinute ?? SHIFT_PRESETS[rule.type].startMinute,
+          endMinute: rule.endMinute ?? SHIFT_PRESETS[rule.type].endMinute,
+        };
   if (startMinute === undefined || endMinute === undefined || startMinute === endMinute)
     return null;
   const start = zonedTime(date, startMinute, cfg.timezone);
@@ -91,11 +96,11 @@ export function parseDutyConfig(timezone: string, weekly: unknown, overrides: un
       for (const [k, r] of Object.entries(v as Record<string, unknown>)) {
         const rule = r as Partial<ShiftRule> | null;
         if (rule && ["DAY", "NIGHT", "CUSTOM", "OFF"].includes(rule.type as string)) {
-          out[k] = {
-            type: rule.type as ShiftType,
-            startMinute: typeof rule.startMinute === "number" ? rule.startMinute : undefined,
-            endMinute: typeof rule.endMinute === "number" ? rule.endMinute : undefined,
-          };
+          // Only keep the hours that were really saved. A key set to `undefined` would override
+          // the DAY / NIGHT preset hours when the rule is merged with them.
+          out[k] = { type: rule.type as ShiftType };
+          if (typeof rule.startMinute === "number") out[k].startMinute = rule.startMinute;
+          if (typeof rule.endMinute === "number") out[k].endMinute = rule.endMinute;
         }
       }
     }
