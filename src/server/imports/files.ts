@@ -1,5 +1,6 @@
 import { Readable } from "node:stream";
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { extractText, getDocumentProxy } from "unpdf";
 import { LIMITS, linesFromRows, linesFromText, type ParsedLine } from "./parse";
 
@@ -50,6 +51,25 @@ function sheetRows(ws: ExcelJS.Worksheet): string[][] {
   return rows;
 }
 
+/**
+ * Some tools (Open XML SDK, ClosedXML, ...) write every XML tag with a namespace prefix ("<x:sheets>").
+ * Excel opens that fine but ExcelJS cannot, so the prefix is stripped before parsing.
+ */
+async function withoutXmlPrefixes(data: Buffer): Promise<Buffer> {
+  const zip = await JSZip.loadAsync(data);
+  const wbXml = await zip.file("xl/workbook.xml")?.async("string");
+  const prefix = wbXml?.match(/<([A-Za-z0-9_]+):workbook[\s>]/)?.[1];
+  if (!prefix) return data;
+  const open = new RegExp(`<(/?)${prefix}:`, "g");
+  const decl = new RegExp(`xmlns:${prefix}=`, "g");
+  for (const name of Object.keys(zip.files)) {
+    if (!name.startsWith("xl/") || !name.endsWith(".xml")) continue;
+    const xml = await zip.file(name)!.async("string");
+    zip.file(name, xml.replace(open, "<$1").replace(decl, "xmlns="));
+  }
+  return zip.generateAsync({ type: "nodebuffer" });
+}
+
 /** Reads every line out of the file. Never executes anything from the file (no macros, no formulas). */
 export async function readLines(kind: FileKind, data: Buffer): Promise<ParsedLine[]> {
   if (kind === "pdf") {
@@ -62,7 +82,7 @@ export async function readLines(kind: FileKind, data: Buffer): Promise<ParsedLin
 
   const wb = new ExcelJS.Workbook();
   if (kind === "csv") await wb.csv.read(Readable.from(data));
-  else await wb.xlsx.load(data as unknown as ExcelJS.Buffer);
+  else await wb.xlsx.load((await withoutXmlPrefixes(data)) as unknown as ExcelJS.Buffer);
 
   const sheets = wb.worksheets.slice(0, MAX_SHEETS);
   const out: ParsedLine[] = [];
