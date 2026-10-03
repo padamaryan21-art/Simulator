@@ -18,5 +18,10 @@ export const PATCH = route<{ id: string }>(async ({ params, body }) => {
 });
 
 export const DELETE = route<{ id: string }>(async ({ params }) => {
-  await deleteGroup(idParam.parse(params).id);
+  try {
+    await deleteGroup(idParam.parse(params).id);
+  } catch (err) {
+    if (err instanceof GroupRuleError) throw new HttpError(409, err.message);
+    throw err;
+  }
 });

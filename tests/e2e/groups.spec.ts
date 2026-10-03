@@ -80,3 +80,31 @@ test.describe("a private group", () => {
     expect(after.automationEnabled).toBe(before.automationEnabled);
   });
 });
+
+test("a group that still has conversation history is not deleted, and says why", async ({
+  request,
+}) => {
+  const group = await createTempGroup(request, `delete-${Date.now()}`);
+  const personas = (await (await request.get("/api/personas")).json()) as { id: string }[];
+  const lines = Array.from({ length: 4 }, (_, i) => ({
+    personaId: personas[i % 2].id,
+    text: `E2E linya ${i}`,
+  }));
+  await request.post("/api/imports/commit", {
+    data: { groupId: group.id, conversations: [{ title: "E2E delete test", messages: lines }] },
+  });
+
+  const refused = await request.delete(`/api/groups/${group.id}`);
+  expect(refused.status()).toBe(409);
+  expect((await refused.json()).error).toMatch(/still has 1 conversation in History/);
+
+  // Once its history is removed, the group can go.
+  const sessions = (await (await request.get("/api/history/sessions?pageSize=100")).json())
+    .rows as { id: string; groupId: string }[];
+  const mine = sessions.filter((s) => s.groupId === group.id).map((s) => s.id);
+  await request.post("/api/history/sessions/delete", { data: { ids: mine } });
+  const ok = await request.delete(`/api/groups/${group.id}`);
+  expect(ok.status()).toBe(200);
+  const left = (await (await request.get("/api/groups")).json()) as { id: string }[];
+  expect(left.some((g) => g.id === group.id)).toBe(false);
+});

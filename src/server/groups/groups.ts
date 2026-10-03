@@ -1,6 +1,6 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { groupParticipants, groups } from "@/db/schema";
+import { conversationSessions, groupParticipants, groups } from "@/db/schema";
 import type { CreateGroupInput, UpdateGroupInput } from "@/validators/telegram";
 
 export type GroupWithParticipants = typeof groups.$inferSelect & { participantIds: string[] };
@@ -67,5 +67,15 @@ export async function updateGroup(id: string, input: UpdateGroupInput) {
 }
 
 export async function deleteGroup(id: string) {
+  // Conversation history is kept on purpose (it is the record of what was sent), so a group that
+  // still has any cannot be removed. Say so instead of failing with a database error.
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(conversationSessions)
+    .where(eq(conversationSessions.groupId, id));
+  if (n > 0)
+    throw new GroupRuleError(
+      `This group still has ${n} conversation${n === 1 ? "" : "s"} in History. Delete ${n === 1 ? "it" : "them"} first (History → Conversations), or just switch the group off with Active and Automation.`,
+    );
   await db.delete(groups).where(eq(groups.id, id));
 }
