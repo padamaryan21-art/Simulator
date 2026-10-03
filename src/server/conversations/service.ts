@@ -141,7 +141,7 @@ export async function createConversation(
   };
 }
 
-export async function listSessions(limit = 30) {
+export async function listSessions(limit = 1000) {
   const rows = await db
     .select({
       session: conversationSessions,

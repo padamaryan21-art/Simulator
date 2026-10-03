@@ -26,6 +26,7 @@ import { useGroups } from "@/features/telegram/hooks";
 import { CONVERSATION_MODES } from "@/validators/conversations";
 
 const AUTO_TOPIC = "__auto__";
+const PAGE_SIZE = 10;
 
 export const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   DRAFT: "secondary",
@@ -51,6 +52,12 @@ export function Simulator() {
   const [requestedMode, setMode] = useState<(typeof CONVERSATION_MODES)[number]>("PREVIEW");
   const [count, setCount] = useState(12);
   const [instruction, setInstruction] = useState("");
+  const [requestedPage, setPage] = useState(1);
+
+  const total = sessions?.length ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(requestedPage, pageCount);
+  const pageStart = (page - 1) * PAGE_SIZE;
 
   const activeGroups = groups?.filter((g) => g.active) ?? [];
   const group = activeGroups.find((g) => g.id === groupId) ?? activeGroups[0];
@@ -244,13 +251,16 @@ export function Simulator() {
           <CardTitle className="text-base">Recent conversations</CardTitle>
         </CardHeader>
         <CardContent className="divide-y p-0">
-          {sessions?.slice(0, 10).map((s) => (
+          {sessions?.slice(pageStart, pageStart + PAGE_SIZE).map((s, i) => (
             <Link
               key={s.id}
               href={`/ai/simulator/${s.id}`}
               className="flex items-center justify-between gap-3 px-6 py-3 text-sm hover:bg-accent/50"
             >
               <span className="min-w-0 truncate">
+                <span className="mr-2 inline-block min-w-8 text-muted-foreground">
+                  {pageStart + i + 1}.
+                </span>
                 <span className="font-medium">{s.topicTitle ?? "Free topic"}</span>
                 <span className="text-muted-foreground"> · {s.groupName}</span>
               </span>
@@ -265,6 +275,34 @@ export function Simulator() {
           ))}
           {!sessions?.length && (
             <p className="px-6 py-4 text-sm text-muted-foreground">Nothing generated yet.</p>
+          )}
+          {total > PAGE_SIZE && (
+            <div className="flex items-center justify-between px-6 py-3 text-sm">
+              <span className="text-muted-foreground">
+                {pageStart + 1}–{Math.min(pageStart + PAGE_SIZE, total)} of {total}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </Button>
+                <span>
+                  Page {page} of {pageCount}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= pageCount}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
