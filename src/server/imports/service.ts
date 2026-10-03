@@ -178,6 +178,10 @@ export async function commitImport(input: CommitInput, userId: string) {
   const accountOf = new Map(accounts.map((a) => [a.id, a.accountId]));
 
   let sessionsCreated = 0;
+  // Postgres now() is frozen inside a transaction, so every draft would share one created_at and the
+  // scheduler (which plays drafts oldest first) would pick them in random order. Stagger them by 1 ms
+  // so the file order is the play order.
+  const importedAt = Date.now();
   await db.transaction(async (tx) => {
     for (const convo of input.conversations) {
       if (new Set(convo.messages.map((m) => m.personaId)).size < 2) continue; // a monologue is not a conversation
@@ -190,6 +194,7 @@ export async function commitImport(input: CommitInput, userId: string) {
           status: "DRAFT",
           environment: group.type,
           source: "IMPORTED",
+          createdAt: new Date(importedAt + sessionsCreated),
           title: convo.title?.slice(0, 200) || null,
         })
         .returning({ id: conversationSessions.id });

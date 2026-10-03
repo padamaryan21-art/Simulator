@@ -151,7 +151,7 @@ export async function listSessions(limit = 1000) {
     .from(conversationSessions)
     .innerJoin(groups, eq(conversationSessions.groupId, groups.id))
     .leftJoin(topics, eq(conversationSessions.topicId, topics.id))
-    .orderBy(desc(conversationSessions.createdAt))
+    .orderBy(asc(conversationSessions.createdAt))
     .limit(limit);
   return rows.map((r) => ({
     ...r.session,
