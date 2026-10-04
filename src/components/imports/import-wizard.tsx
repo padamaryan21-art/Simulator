@@ -195,7 +195,7 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
                 id="min"
                 type="number"
                 min={4}
-                max={60}
+                max={200}
                 value={minSize}
                 onChange={(e) => setMinSize(Number(e.target.value))}
               />
@@ -206,7 +206,7 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
                 id="max"
                 type="number"
                 min={4}
-                max={60}
+                max={200}
                 value={maxSize}
                 onChange={(e) => setMaxSize(Number(e.target.value))}
               />

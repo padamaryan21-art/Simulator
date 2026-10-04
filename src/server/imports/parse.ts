@@ -13,7 +13,7 @@ export const LIMITS = {
   maxLines: 20_000,
   maxMessageChars: 600,
   /** Longer conversations are split so a single send job never runs for hours. */
-  maxConversationLines: 60,
+  maxConversationLines: 200,
 };
 
 const norm = (s: string) =>
