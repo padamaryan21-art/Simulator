@@ -97,16 +97,8 @@ export function route<P = Record<string, never>>(
           { status },
         );
       }
-      console.error("[route] unhandled error:", err);
       await captureError(err, "api", { path: new URL(req.url).pathname });
-      const debug = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-      const cause =
-        err instanceof Error && err.cause instanceof Error
-          ? `${err.cause.name}: ${err.cause.message}`
-          : err instanceof Error && err.cause != null
-            ? String(err.cause)
-            : undefined;
-      return NextResponse.json({ error: "Internal server error", debug, cause }, { status: 500 });
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
   };
 }
