@@ -50,6 +50,13 @@
       "when": 1791004187402,
       "tag": "0006_prompt_library",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791100000000,
+      "tag": "0007_account_proxy",
+      "breakpoints": true
     }
   ]
 }

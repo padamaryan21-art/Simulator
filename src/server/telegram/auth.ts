@@ -38,7 +38,11 @@ async function discardPending(accountId: string) {
 
 export async function sendLoginCode(accountId: string, phone: string) {
   await discardPending(accountId);
-  const client = createClient();
+  const [row] = await db
+    .select({ proxyUrl: telegramAccounts.proxyUrl })
+    .from(telegramAccounts)
+    .where(eq(telegramAccounts.id, accountId));
+  const client = createClient("", row?.proxyUrl);
   try {
     await client.connect();
     const { phoneCodeHash } = await client.sendCode(apiCredentials(), phone);

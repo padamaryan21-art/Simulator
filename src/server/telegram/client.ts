@@ -13,10 +13,27 @@ export function apiCredentials() {
   return { apiId: requireEnv("TELEGRAM_API_ID"), apiHash: requireEnv("TELEGRAM_API_HASH") };
 }
 
-export function createClient(sessionString = ""): TelegramClient {
+function parseProxy(proxyUrl: string | null | undefined) {
+  if (!proxyUrl) return undefined;
+  try {
+    const u = new URL(proxyUrl);
+    return {
+      socksType: 5 as const,
+      ip: u.hostname,
+      port: parseInt(u.port, 10),
+      ...(u.username ? { username: decodeURIComponent(u.username) } : {}),
+      ...(u.password ? { password: decodeURIComponent(u.password) } : {}),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+export function createClient(sessionString = "", proxyUrl?: string | null): TelegramClient {
   const { apiId, apiHash } = apiCredentials();
   const client = new TelegramClient(new StringSession(sessionString), apiId, apiHash, {
     connectionRetries: 3,
+    ...(proxyUrl ? { proxySettings: parseProxy(proxyUrl) } : {}),
   });
   // GramJS logs benign ping timeouts to the console; our own structured logs cover real failures.
   client.setLogLevel(LogLevel.NONE);
@@ -60,10 +77,11 @@ function touch(accountId: string, entry: Entry) {
 export async function getConnectedClient(
   accountId: string,
   sessionString: string,
+  proxyUrl?: string | null,
 ): Promise<TelegramClient> {
   let entry = pool.get(accountId);
   if (!entry) {
-    entry = { client: createClient(sessionString), locked: false };
+    entry = { client: createClient(sessionString, proxyUrl), locked: false };
     pool.set(accountId, entry);
   }
   const e = entry;

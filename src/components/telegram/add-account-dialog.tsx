@@ -29,7 +29,7 @@ export function AddAccountDialog() {
     formState: { errors },
   } = useForm<CreateAccountInput>({
     resolver: zodResolver(createAccountSchema),
-    defaultValues: { phone: undefined },
+    defaultValues: { phone: undefined, proxyUrl: undefined },
   });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -75,6 +75,20 @@ export function AddAccountDialog() {
               <Label htmlFor="phone">Phone (optional)</Label>
               <Input id="phone" placeholder="+639171234567" {...register("phone")} />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="proxyUrl">Proxy (optional)</Label>
+              <Input
+                id="proxyUrl"
+                placeholder="socks5://user:pass@host:1080"
+                {...register("proxyUrl")}
+              />
+              {errors.proxyUrl && (
+                <p className="text-sm text-destructive">{errors.proxyUrl.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                SOCKS5 proxy for this account&apos;s Telegram connection.
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>

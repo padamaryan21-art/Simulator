@@ -16,7 +16,7 @@ export async function connectAccount(accountId: string) {
   if (!row?.encryptedSession) {
     throw new TelegramServiceError("Account has no saved session", "NOT_AUTHORIZED");
   }
-  return getConnectedClient(accountId, decryptSecret(row.encryptedSession));
+  return getConnectedClient(accountId, decryptSecret(row.encryptedSession), row.proxyUrl);
 }
 
 /** Reconnect = drop the pooled client and build a fresh one from the saved session. */

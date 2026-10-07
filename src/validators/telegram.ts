@@ -12,10 +12,19 @@ export const phoneSchema = z
   .trim()
   .regex(/^\+[1-9]\d{7,14}$/, "Use international format, e.g. +639171234567");
 
+/** socks5://[user:pass@]host:port */
+export const proxyUrlSchema = z
+  .string()
+  .trim()
+  .regex(/^socks5:\/\/.+:\d+$/, "Use socks5://[user:pass@]host:port format")
+  .nullable()
+  .optional();
+
 export const createAccountSchema = z.object({
   displayName: z.string().trim().min(1).max(100),
   username,
   phone: z.union([phoneSchema, z.literal("")]).optional(),
+  proxyUrl: proxyUrlSchema,
 });
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 
@@ -25,6 +34,7 @@ export const updateAccountSchema = z
     username,
     phone: phoneSchema.nullable(),
     active: z.boolean(),
+    proxyUrl: proxyUrlSchema,
   })
   .partial();
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;

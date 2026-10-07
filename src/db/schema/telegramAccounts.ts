@@ -15,6 +15,8 @@ export const telegramAccounts = pgTable("telegram_accounts", {
     .default("DISCONNECTED"),
   lastError: text("last_error"),
   lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+  /** SOCKS5 proxy URL, e.g. socks5://user:pass@host:port */
+  proxyUrl: text("proxy_url"),
   active: boolean("active").notNull().default(true),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

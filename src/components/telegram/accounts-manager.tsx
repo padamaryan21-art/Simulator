@@ -88,6 +88,7 @@ export function AccountsManager() {
                   <TableHead>Name</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Proxy</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last checked</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -101,6 +102,15 @@ export function AccountsManager() {
                       <TableCell className="font-medium">{a.displayName}</TableCell>
                       <TableCell>@{a.username}</TableCell>
                       <TableCell className="text-muted-foreground">{a.phone ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {a.proxyUrl ? (
+                          <span className="text-xs font-mono truncate max-w-[160px] block" title={a.proxyUrl}>
+                            {new URL(a.proxyUrl).hostname}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={st.variant}>{st.label}</Badge>
                         {a.lastError && (
