@@ -33,6 +33,11 @@ export function createClient(sessionString = "", proxyUrl?: string | null): Tele
   const { apiId, apiHash } = apiCredentials();
   const client = new TelegramClient(new StringSession(sessionString), apiId, apiHash, {
     connectionRetries: 3,
+    deviceModel: "Samsung Galaxy S23",
+    systemVersion: "Android 14",
+    appVersion: "10.14.4",
+    langCode: "en",
+    systemLangCode: "en",
     ...(proxyUrl ? { proxySettings: parseProxy(proxyUrl) } : {}),
   });
   // GramJS logs benign ping timeouts to the console; our own structured logs cover real failures.
