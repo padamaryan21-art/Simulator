@@ -33,7 +33,7 @@ export async function createAccount(input: CreateAccountInput) {
       displayName: input.displayName,
       username: input.username.replace(/^@/, ""),
       phone: input.phone || null,
-      proxyUrl: input.proxyUrl ?? null,
+      proxyUrl: input.proxyUrl || null,
     })
     .returning();
   return toPublicAccount(row);

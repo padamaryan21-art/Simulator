@@ -16,13 +16,12 @@ export const phoneSchema = z
 export const proxyUrlSchema = z
   .string()
   .trim()
-  .nullable()
-  .optional()
   .refine(
-    (v) => v == null || v === "" || /^socks5:\/\/.+:\d+$/.test(v),
+    (v) => !v || /^socks5:\/\/.+:\d+$/.test(v),
     "Use socks5://[user:pass@]host:port format",
   )
-  .transform((v) => v || null);
+  .nullable()
+  .optional();
 
 export const createAccountSchema = z.object({
   displayName: z.string().trim().min(1).max(100),

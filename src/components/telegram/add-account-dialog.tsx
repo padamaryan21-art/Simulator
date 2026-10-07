@@ -34,7 +34,7 @@ export function AddAccountDialog() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await create.mutateAsync({ ...values, phone: values.phone || undefined });
+      await create.mutateAsync({ ...values, phone: values.phone || undefined, proxyUrl: values.proxyUrl || null });
       toast.success("Account added. Click Connect to log it in.");
       reset();
       setOpen(false);
