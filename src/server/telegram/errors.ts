@@ -43,7 +43,9 @@ export function normalizeTelegramError(err: unknown): TelegramServiceError {
         "Incorrect two-step verification password",
         "INVALID_PASSWORD",
       );
-    case m.includes("AUTH_KEY") || m.includes("SESSION_REVOKED") || m.includes("USER_DEACTIVATED"):
+    case m.includes("USER_DEACTIVATED"):
+      return new TelegramServiceError("Account has been banned or deactivated by Telegram", "NOT_AUTHORIZED");
+    case m.includes("AUTH_KEY") || m.includes("SESSION_REVOKED"):
       return new TelegramServiceError("Session is no longer authorized", "NOT_AUTHORIZED");
     default:
       return new TelegramServiceError(m || "Unknown Telegram error", "UNKNOWN");
