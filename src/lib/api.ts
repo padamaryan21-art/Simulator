@@ -40,7 +40,13 @@ export function route<P = Record<string, never>>(
   options: RouteOptions = {},
 ) {
   return async (req: Request, ctx: Ctx<P>) => {
-    const user = await getUserOrNull();
+    let user;
+    try {
+      user = await getUserOrNull();
+    } catch (err) {
+      console.error("[route] auth error:", err);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (isCrossSiteMutation(req)) {
       return NextResponse.json({ error: "Cross-site request blocked" }, { status: 403 });
@@ -91,8 +97,10 @@ export function route<P = Record<string, never>>(
           { status },
         );
       }
+      console.error("[route] unhandled error:", err);
       await captureError(err, "api", { path: new URL(req.url).pathname });
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      const debug = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+      return NextResponse.json({ error: "Internal server error", debug }, { status: 500 });
     }
   };
 }
