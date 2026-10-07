@@ -27,7 +27,7 @@ module.exports = {
   apps: [
     {
       ...common,
-      name: "lakiph-web",
+      name: "allyono-web",
       script: path.join(cwd, "node_modules/next/dist/bin/next"),
       // Bound to localhost: only the reverse proxy (aaPanel / nginx) can reach it.
       args: "start -p 3000 -H 127.0.0.1",
@@ -37,7 +37,7 @@ module.exports = {
     },
     {
       ...common,
-      name: "lakiph-worker",
+      name: "allyono-worker",
       script: path.join(cwd, "node_modules/tsx/dist/cli.mjs"),
       args: "worker/index.ts",
       max_memory_restart: "1000M",

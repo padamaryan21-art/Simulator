@@ -26,7 +26,7 @@ node -v            # must print v22.x or higher
 npm i -g pm2
 ```
 
-Optional, only for the **LakiPH Knowledge** page when a site needs a real browser (single-page sites):
+Optional, only for the **AllYono Knowledge** page when a site needs a real browser (single-page sites):
 
 ```bash
 npx playwright install --with-deps chromium
@@ -35,16 +35,16 @@ npx playwright install --with-deps chromium
 ## 2. Put the project on the server
 
 Upload the project folder (zip it without `node_modules`, `.next`, `.env.local`, `tests/e2e/.auth`) to, for example,
-`/www/wwwroot/lakiph`, or `git clone` it if you use a private repository.
+`/www/wwwroot/allyono`, or `git clone` it if you use a private repository.
 
 ```bash
-cd /www/wwwroot/lakiph
+cd /www/wwwroot/allyono
 npm ci             # a FULL install: the worker runs through tsx, which is a dev dependency
 ```
 
 ## 3. Environment file
 
-Create `/www/wwwroot/lakiph/.env.local` (copy `.env.example` and fill it in). The values to double check on a server:
+Create `/www/wwwroot/allyono/.env.local` (copy `.env.example` and fill it in). The values to double check on a server:
 
 | Variable | Value |
 |---|---|
@@ -68,7 +68,7 @@ npm run build
 pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup        # run the command it prints, so both processes come back after a reboot
-pm2 status         # lakiph-web and lakiph-worker should both be "online"
+pm2 status         # allyono-web and allyono-worker should both be "online"
 ```
 
 Database changes (only when a new release adds a migration): `npm run db:migrate`, then restart (step 7).
@@ -95,17 +95,17 @@ For long requests (AI generation, imports), raise the proxy timeout to at least 
 
 ```bash
 pm2 status                      # are both running?
-pm2 logs lakiph-worker --lines 100
-pm2 restart lakiph-web lakiph-worker
+pm2 logs allyono-worker --lines 100
+pm2 restart allyono-web allyono-worker
 ```
 
 Updating to a new version:
 
 ```bash
-cd /www/wwwroot/lakiph
+cd /www/wwwroot/allyono
 # replace the files (keep .env.local), then:
 npm ci && npm run build
-pm2 restart lakiph-web lakiph-worker
+pm2 restart allyono-web allyono-worker
 ```
 
 Logs are in `logs/` (rotate them with `pm2 install pm2-logrotate`).
@@ -117,7 +117,7 @@ Logs are in `logs/` (rotate them with `pm2 install pm2-logrotate`).
 3. **Telegram -> Accounts**: connect each account from the live dashboard (it asks for the Telegram code). If an account
    was already connected on your PC, stop the PC's dashboard/worker first: Telegram signs out a session that is used from two
    places at once.
-4. Your private test group: Resolve it, set Active and Automation as you want. The real LakiPH Community stays manual.
+4. Your private test group: Resolve it, set Active and Automation as you want. The real AllYono Community stays manual.
 5. **Scheduler**: set your duty calendar and volume, enable the schedule, press START ALL.
 6. Optional rehearsal: set `SIMULATION_DRY_RUN=true`, restart, watch **History** fill without anything reaching Telegram,
    then remove it and restart.
@@ -131,8 +131,8 @@ server itself only needs `.env.local` and the project files, so keep a private c
 
 | Symptom | Fix |
 |---|---|
-| Site shows 502 | `pm2 status`; if `lakiph-web` is errored, `pm2 logs lakiph-web` |
-| Worker "offline" on the Queue page | `pm2 logs lakiph-worker`; usually a wrong or missing `REDIS_URL` |
+| Site shows 502 | `pm2 status`; if `allyono-web` is errored, `pm2 logs allyono-web` |
+| Worker "offline" on the Queue page | `pm2 logs allyono-worker`; usually a wrong or missing `REDIS_URL` |
 | Telegram account says "in use by another process" | Another copy (your PC, an old worker) is connected; stop it and retry in a minute |
 | Password reset link goes to localhost | `NEXT_PUBLIC_APP_URL` and the Supabase Site URL still say localhost; fix, rebuild, restart |
 | Telegram sessions stop working after a move | `SESSION_ENCRYPTION_KEY` differs from the one that encrypted them |

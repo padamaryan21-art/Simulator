@@ -3,7 +3,7 @@ import { getSharedConnection } from "./connection";
 import { PROCESS_ID } from "./locks";
 import { redisConfigured } from "./names";
 
-const KEY = "lakiph:worker:alive";
+const KEY = "allyono:worker:alive";
 
 /** Called by the worker every few seconds; expires on its own if the worker dies. */
 export async function beatWorkerHeartbeat() {

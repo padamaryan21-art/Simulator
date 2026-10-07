@@ -49,7 +49,7 @@ export async function extractMemoriesForSession(sessionId: string, groupId: stri
 
     const res = await generateText({
       system:
-        "You extract small, durable memories from a casual chat between fictional personas so later chats can refer back to them. Only record things explicitly said in the transcript. Never record claims about LakiPH, money, bonuses or winnings. Skip trivia. Output JSON only.",
+        "You extract small, durable memories from a casual chat between fictional personas so later chats can refer back to them. Only record things explicitly said in the transcript. Never record claims about AllYono, money, bonuses or winnings. Skip trivia. Output JSON only.",
       messages: [
         {
           role: "user",

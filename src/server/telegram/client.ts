@@ -48,7 +48,7 @@ const pool = (g.__tgPool ??= new Map());
 const IDLE_MS = 45_000;
 const LOCK_TTL_MS = 120_000;
 const LOCK_WAIT_MS = 60_000;
-const lockKey = (accountId: string) => `lakiph:tg-session:${accountId}`;
+const lockKey = (accountId: string) => `allyono:tg-session:${accountId}`;
 
 function touch(accountId: string, entry: Entry) {
   if (entry.timer) clearTimeout(entry.timer);

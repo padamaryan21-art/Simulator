@@ -77,7 +77,7 @@ export function KnowledgeManager() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">LakiPH Knowledge</h1>
+        <h1 className="text-2xl font-semibold">AllYono Knowledge</h1>
         <div className="flex gap-2">
           {(Object.keys(STATUS) as FactStatus[]).map((s) => (
             <Badge key={s} variant={STATUS[s].variant}>

@@ -121,7 +121,7 @@ export async function previewImport(input: {
     const result = validateConversation(c.lines, {
       participants: names,
       recent: [],
-      topicCategory: "LAKIPH", // the import's topic is unknown; use the lenient LakiPH-mention limit
+      topicCategory: "ALLYONO", // the import's topic is unknown; use the lenient AllYono-mention limit
       factsText: facts,
       expectedCount: c.lines.length,
     });

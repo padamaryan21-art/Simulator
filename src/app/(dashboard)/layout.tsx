@@ -7,7 +7,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-60 shrink-0 border-r md:block">
-        <div className="flex h-14 items-center border-b px-4 font-semibold">LakiPH Simulation</div>
+        <div className="flex h-14 items-center border-b px-4 font-semibold">AllYono</div>
         <SidebarNav />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">

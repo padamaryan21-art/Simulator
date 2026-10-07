@@ -33,7 +33,7 @@ export function parseConversationJson(raw: string): RawMessage[] {
 }
 
 const URL_RE = /(https?:\/\/|www\.|t\.me\/|\b[a-z0-9-]+\.(com|ph|net|org|io|me)\b)/i;
-const LAKIPH_RE = /laki\s?\.?\s?ph/gi;
+const ALLYONO_RE = /(all\s?yono|laki\s?\.?\s?ph)/gi;
 const PERCENT_RE = /\d+(?:[.,]\d+)?\s?%/g;
 const PROMO_RE =
   /\b(guaranteed|sure\s?win|sigurado(ng)?\s+(panalo|win)|jackpot|deposit|mag-?register|sign\s?up|join\s+(us|na)|sali\s+na|click|download|promo\s?code|referral)\b/i;
@@ -111,15 +111,15 @@ export function validateConversation(raw: RawMessage[], v: ValidationInput): Val
     }
   });
 
-  const mentions = messages.filter((m) => (m.text.match(LAKIPH_RE) ?? []).length > 0).length;
-  const limit = v.topicCategory === "LAKIPH" ? Math.max(2, Math.ceil(messages.length * 0.25)) : 0;
+  const mentions = messages.filter((m) => (m.text.match(ALLYONO_RE) ?? []).length > 0).length;
+  const limit = v.topicCategory === "ALLYONO" ? Math.max(2, Math.ceil(messages.length * 0.25)) : 0;
   if (mentions > limit) {
     issues.push({
-      code: "lakiph_mentions",
+      code: "allyono_mentions",
       message:
         limit === 0
-          ? `LakiPH mentioned ${mentions}x on an unrelated topic`
-          : `LakiPH mentioned in ${mentions} messages (max ${limit})`,
+          ? `AllYono mentioned ${mentions}x on an unrelated topic`
+          : `AllYono mentioned in ${mentions} messages (max ${limit})`,
     });
   }
 
@@ -145,7 +145,7 @@ export const SEVERE_CODES = new Set([
   "win_claim",
   "promo_language",
   "link",
-  "lakiph_mentions",
+  "allyono_mentions",
 ]);
 
 /**

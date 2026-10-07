@@ -1,8 +1,8 @@
-# LakiPH Telegram Community Simulation
+# Allyono Telegram Community Simulation
 
 An admin dashboard that manages connected Telegram accounts, writes natural Tagalog/Taglish conversations
 between personas (with free AI models), and sends them to a private test group on a schedule that follows
-your duty shifts. The real LakiPH Community is never automated: everything for it goes through human approval.
+your duty shifts. The real AllYono Community is never automated: everything for it goes through human approval.
 
 **Stack:** Next.js 16 (App Router) · Supabase (Auth + Postgres) · Drizzle · GramJS (Telegram user accounts) ·
 BullMQ + Redis · Vitest · Playwright.
@@ -32,7 +32,7 @@ To host it on a server (aaPanel / any VPS, dashboard and worker together), follo
 ## Typical day-to-day flow
 
 1. **Accounts / Groups:** connect each Telegram account; give the private group a Telegram link and Resolve it.
-2. **Personas / Relationships / Topics / LakiPH Knowledge:** fill them in; confirm facts before the AI may use them.
+2. **Personas / Relationships / Topics / AllYono Knowledge:** fill them in; confirm facts before the AI may use them.
 3. **Content:** generate in the **Simulator**, bulk-generate drafts, or **Import conversations** (Excel/CSV/PDF written elsewhere). Add pictures in **Images** (see below).
 4. **Scheduler:** set your duty calendar (day / night / custom / days off) and volume, enable the schedule, START ALL.
 5. **History / Logs / Queue:** watch what was generated, sent, or failed.

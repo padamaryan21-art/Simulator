@@ -55,7 +55,7 @@ const OPENAI_COMPATIBLE: Record<
     defaultModel: "google/gemma-4-31b-it:free",
     extraHeaders: () => ({
       "HTTP-Referer": getEnv().NEXT_PUBLIC_APP_URL,
-      "X-Title": "LakiPH Simulation",
+      "X-Title": "AllYono",
     }),
   },
   cerebras: {

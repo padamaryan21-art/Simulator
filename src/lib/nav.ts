@@ -47,7 +47,7 @@ export const NAV: NavSection[] = [
     title: "Content",
     items: [
       { label: "Topics", href: "/content/topics", icon: MessageSquare },
-      { label: "LakiPH Knowledge", href: "/content/knowledge", icon: Globe },
+      { label: "AllYono Knowledge", href: "/content/knowledge", icon: Globe },
       { label: "Images", href: "/content/images", icon: ImageIcon },
     ],
   },

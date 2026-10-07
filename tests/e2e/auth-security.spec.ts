@@ -111,7 +111,7 @@ test.describe("signed in", () => {
     browser,
   }) => {
     const admin = adminClient();
-    const email = `lakiph-e2e-signout-${Date.now()}@example.com`;
+    const email = `allyono-e2e-signout-${Date.now()}@example.com`;
     const password = `E2e-${Math.random().toString(36).slice(2)}-Aa1!`;
     const { data, error } = await admin.auth.admin.createUser({
       email,

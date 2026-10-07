@@ -36,7 +36,7 @@ const CODE_LABEL: Record<string, string> = {
   promo_language: "promotional wording",
   link: "contains a link",
   unverified_number: "figure not in confirmed facts",
-  lakiph_mentions: "mentions LakiPH too often",
+  allyono_mentions: "mentions AllYono too often",
   repetition: "near-duplicate line",
   same_speaker_run: "same person 3+ times in a row",
   too_long: "over 600 characters",

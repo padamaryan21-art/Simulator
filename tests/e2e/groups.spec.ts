@@ -19,7 +19,7 @@ test("the real community is flagged, locked, and cannot be automated from the UI
   page,
 }) => {
   await page.goto("/telegram/groups");
-  const real = card(page, "LakiPH Community");
+  const real = card(page, "AllYono Community");
   await expect(real.getByText("REAL COMMUNITY").first()).toBeVisible();
   await expect(real.getByText("Messages require human approval before sending.")).toBeVisible();
   await expect(real.getByRole("switch", { name: /Automation/ })).toBeDisabled();

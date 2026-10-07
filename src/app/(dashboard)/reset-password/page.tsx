@@ -1,6 +1,6 @@
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 
-export const metadata = { title: "Set new password · LakiPH Simulation" };
+export const metadata = { title: "Set new password · AllYono" };
 
 export default function ResetPasswordPage() {
   return (

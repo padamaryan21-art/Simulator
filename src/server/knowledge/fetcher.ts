@@ -18,7 +18,7 @@ const MAX_BYTES = 2_000_000;
 const MAX_TEXT = 60_000;
 /** Below this much text a static fetch is assumed to be an empty JS shell. */
 const MIN_STATIC_TEXT = 300;
-const UA = "Mozilla/5.0 (compatible; LakiPHKnowledgeBot/1.0)";
+const UA = "Mozilla/5.0 (compatible; AllYonoKnowledgeBot/1.0)";
 
 function isPrivateIp(ip: string): boolean {
   if (ip === "::1" || ip.startsWith("fe80:") || ip.startsWith("fc") || ip.startsWith("fd"))

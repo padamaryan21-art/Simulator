@@ -289,14 +289,14 @@ export const BUILTIN_PROMPTS: BuiltinPrompt[] = [
     ],
   },
   {
-    id: "lakiph-casual-chat",
+    id: "allyono-casual-chat",
     title: "Kwentuhan tungkol sa mga laro sa app (walang payo)",
-    topic: "Mga laro sa LakiPH",
+    topic: "Mga laro sa AllYono",
     description:
       "Pangkaraniwang kwentuhan na may nabanggit na laro sa app, pero walang panalo, payout, tips o pag-aanyaya. Para sa pribadong test group lamang.",
     ...COMMON,
     notes:
-      "Some chats may mention that a friend has looked at the LakiPH app or its game lobby. Keep it to casual, personal and non-factual talk: curiosity, jokes, 'ang daming laro', who is busy, who prefers other things. Nobody says how well anyone did, how to play better, or what the app offers or pays. Nobody invites another person to try it. About half of the conversations should not mention the app at all and just be normal friends' chat.",
+      "Some chats may mention that a friend has looked at the AllYono app or its game lobby. Keep it to casual, personal and non-factual talk: curiosity, jokes, 'ang daming laro', who is busy, who prefers other things. Nobody says how well anyone did, how to play better, or what the app offers or pays. Nobody invites another person to try it. About half of the conversations should not mention the app at all and just be normal friends' chat.",
     situations: [
       {
         label: "Nag-browse lang",

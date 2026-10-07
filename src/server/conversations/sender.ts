@@ -216,10 +216,9 @@ export async function runSender(sessionId: string, userId: string | null) {
           } else {
             await sendMessage(msg.telegramAccountId!, target, msg.content);
           }
-          await db
-            .update(conversationMessages)
-            .set({ status: "SENT", sentAt: new Date(), errorMessage: null })
-            .where(eq(conversationMessages.id, msg.id));
+          // The message is already out. A pooled connection may have gone stale during the waits,
+          // so retry the bookkeeping write rather than failing a message that was delivered.
+          await markSent(msg.id);
           sent++;
           break;
         } catch (err) {
@@ -268,6 +267,21 @@ export async function runSender(sessionId: string, userId: string | null) {
     await finish(sessionId, "FAILED");
   } finally {
     active.delete(sessionId);
+  }
+}
+
+async function markSent(messageId: string) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await db
+        .update(conversationMessages)
+        .set({ status: "SENT", sentAt: new Date(), errorMessage: null })
+        .where(eq(conversationMessages.id, messageId));
+      return;
+    } catch (err) {
+      if (attempt >= 3) throw err;
+      await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+    }
   }
 }
 

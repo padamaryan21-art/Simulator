@@ -38,7 +38,7 @@ function Form() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>LakiPH Simulation</CardTitle>
+        <CardTitle>AllYono</CardTitle>
         <CardDescription>Sign in to the admin dashboard</CardDescription>
       </CardHeader>
       <CardContent>

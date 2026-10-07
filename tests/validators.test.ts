@@ -39,23 +39,23 @@ describe("validateConversation", () => {
     expect(r.messages[0].speaker).toBe("Jen");
     expect(codes(r)).toContain("unknown_speaker");
   });
-  it("flags LakiPH mentions on unrelated topics", () => {
-    const r = validateConversation([...ok.slice(0, 5), msg("Grace", "try niyo LakiPH")], {
+  it("flags AllYono mentions on unrelated topics", () => {
+    const r = validateConversation([...ok.slice(0, 5), msg("Grace", "try niyo AllYono")], {
       ...base,
       topicCategory: "FOOD",
     });
-    expect(codes(r)).toContain("lakiph_mentions");
+    expect(codes(r)).toContain("allyono_mentions");
   });
   it("flags unverified percentages but allows confirmed ones", () => {
     const text = [...ok.slice(0, 5), msg("Grace", "may 160% daw")];
-    expect(codes(validateConversation(text, { ...base, topicCategory: "LAKIPH" }))).toContain(
+    expect(codes(validateConversation(text, { ...base, topicCategory: "ALLYONO" }))).toContain(
       "unverified_number",
     );
     expect(
       codes(
         validateConversation(text, {
           ...base,
-          topicCategory: "LAKIPH",
+          topicCategory: "ALLYONO",
           factsText: "bonusupto160%",
         }),
       ),

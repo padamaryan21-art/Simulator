@@ -7,7 +7,7 @@ test.describe("simulator", () => {
   }) => {
     await page.goto("/ai/simulator");
     await page.getByRole("combobox").first().click();
-    await page.getByRole("option", { name: "LakiPH Community" }).click();
+    await page.getByRole("option", { name: "AllYono Community" }).click();
     await expect(page.getByText("Messages require human approval before sending.")).toBeVisible();
 
     // Mode list: automatic must be disabled for a real community.

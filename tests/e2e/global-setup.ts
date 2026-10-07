@@ -14,7 +14,7 @@ export default async function globalSetup(config: FullConfig) {
   const [state] = await db`select state from automation_state where id = 1`;
   await db.end();
 
-  const email = `lakiph-e2e-${Date.now()}@example.com`;
+  const email = `allyono-e2e-${Date.now()}@example.com`;
   const password = `E2e-${Math.random().toString(36).slice(2)}-Aa1!`;
   const { data, error } = await adminClient().auth.admin.createUser({
     email,

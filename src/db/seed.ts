@@ -85,7 +85,7 @@ async function main() {
 
   const groupSeeds = [
     {
-      name: "LakiPH Private Simulation",
+      name: "AllYono Private Simulation",
       type: "PRIVATE_SIMULATION" as const,
       purpose: "Testing Claude-generated conversations.",
       automationEnabled: true,
@@ -93,12 +93,12 @@ async function main() {
       url: null,
     },
     {
-      name: "LakiPH Community",
+      name: "AllYono Community",
       type: "REAL_COMMUNITY" as const,
       purpose: "Real community. Human approval required for every message.",
       automationEnabled: false,
       requiresApproval: true,
-      url: "https://t.me/LakiPHCommunity",
+      url: "https://t.me/AllYonoCommunity",
     },
   ];
   const existingGroups = await db.select().from(s.groups);
@@ -113,7 +113,7 @@ async function main() {
   }
 
   const categories = [
-    "LAKIPH",
+    "ALLYONO",
     "FOOD",
     "WORK",
     "FAMILY",
@@ -229,23 +229,23 @@ async function main() {
     );
   }
 
-  // LakiPH topics: low priority and long cooldown so the brand is never the constant subject.
-  // The AI may only mention game names/facts that a person has Confirmed in LakiPH Knowledge.
-  const lakiphTopicSeeds = [
+  // AllYono topics: low priority and long cooldown so the brand is never the constant subject.
+  // The AI may only mention game names/facts that a person has Confirmed in AllYono Knowledge.
+  const allyonoTopicSeeds = [
     [
-      "Mga laro sa LakiPH",
-      "Casual na usapan tungkol sa mga uri ng laro sa LakiPH (Slots, Fish, Live Casino, Poker, Lottery).",
+      "Mga laro sa AllYono",
+      "Casual na usapan tungkol sa mga uri ng laro sa AllYono (Slots, Fish, Live Casino, Poker, Lottery).",
       "Banggitin lang ang mga uri at pangalan ng laro mula sa confirmed knowledge. Walang payo, hula, o pangako ng panalo.",
     ],
     [
       "Fishing games",
-      "Pagkukwentuhan tungkol sa mga fishing game sa LakiPH.",
+      "Pagkukwentuhan tungkol sa mga fishing game sa AllYono.",
       "Ordinaryong kwentuhan tungkol sa konsepto ng fishing games at mga pangalang nasa confirmed knowledge. Walang tips sa pagpanalo.",
     ],
     [
       "Tongits at Pusoy",
       "Mga larong baraha na kilala ng mga Pilipino at kung paano nilalaro noon.",
-      "Alaala at kwento tungkol sa Tongits at Pusoy kasama ang pamilya o barkada; banggitin ang LakiPH nang pasimple lamang kung confirmed sa knowledge.",
+      "Alaala at kwento tungkol sa Tongits at Pusoy kasama ang pamilya o barkada; banggitin ang AllYono nang pasimple lamang kung confirmed sa knowledge.",
     ],
     [
       "Live casino at baccarat",
@@ -254,7 +254,7 @@ async function main() {
     ],
     [
       "Pag-download ng app",
-      "Mga tanong tungkol sa Android app at iOS Lite app ng LakiPH.",
+      "Mga tanong tungkol sa Android app at iOS Lite app ng AllYono.",
       "Banggitin lamang ang mga app na nasa confirmed knowledge; walang links at walang paghikayat na mag-download.",
     ],
     [
@@ -263,14 +263,14 @@ async function main() {
       "Magkaibigang nagpapaalalahanan na maglaro nang responsable, magtakda ng limitasyon, at huwag gamitin ang pambayad sa bills. Gamitin ang confirmed 18+ na paalala kung mayroon.",
     ],
   ] as const;
-  const lakiphCat = catId("LAKIPH");
-  const newLakiph = lakiphTopicSeeds.filter(
+  const allyonoCat = catId("ALLYONO");
+  const newAllyono = allyonoTopicSeeds.filter(
     ([title]) => !existingTopics.some((t) => t.title === title),
   );
-  if (newLakiph.length) {
+  if (newAllyono.length) {
     await db.insert(s.topics).values(
-      newLakiph.map(([title, description, promptSeed]) => ({
-        categoryId: lakiphCat,
+      newAllyono.map(([title, description, promptSeed]) => ({
+        categoryId: allyonoCat,
         title,
         description,
         promptSeed,
@@ -283,7 +283,7 @@ async function main() {
   await db.insert(s.automationState).values({ id: 1, state: "STOPPED" }).onConflictDoNothing();
   await db
     .insert(s.websiteSources)
-    .values({ name: "LakiPH Website", baseUrl: "https://www.laki.ph/" })
+    .values({ name: "AllYono Website", baseUrl: "https://www.laki.ph/" })
     .onConflictDoNothing();
 
   console.log("Seed complete.");

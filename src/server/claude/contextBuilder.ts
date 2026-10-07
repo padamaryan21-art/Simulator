@@ -87,8 +87,8 @@ function personaBlock(p: PersonaRow): string {
 export function formatContext(d: ContextData): ConversationContext {
   const names = d.participants.map((p) => p.name);
   const knowledge = d.facts.length
-    ? `Confirmed facts (the ONLY facts you may state about LakiPH; each is from the official site):\n${bullet(d.facts.map((f) => f.fact))}\nAnything not listed is UNKNOWN: do not state or guess it.`
-    : "No confirmed facts are available. Treat everything about LakiPH as UNKNOWN: do not state or guess any details.";
+    ? `Confirmed facts (the ONLY facts you may state about AllYono; each is from the official site):\n${bullet(d.facts.map((f) => f.fact))}\nAnything not listed is UNKNOWN: do not state or guess it.`
+    : "No confirmed facts are available. Treat everything about AllYono as UNKNOWN: do not state or guess any details.";
 
   const user = [
     "# PERSONAS",
@@ -117,7 +117,7 @@ export function formatContext(d: ContextData): ConversationContext {
       : "Free conversation: pick something ordinary and natural.",
     "# DAILY ENVIRONMENT",
     describeEnvironment(d.now),
-    "# LAKIPH KNOWLEDGE",
+    "# ALLYONO KNOWLEDGE",
     knowledge,
     "# CONVERSATION RULES",
     CONVERSATION_RULES,
@@ -226,8 +226,8 @@ export async function buildConversationContext(input: BuildInput): Promise<Conve
     categoryKey = c?.key;
   }
 
-  // LakiPH facts are only offered when the topic is about LakiPH, so it isn't mentioned constantly.
-  const facts = categoryKey === "LAKIPH" ? await getConfirmedFacts() : [];
+  // AllYono facts are only offered when the topic is about AllYono, so it isn't mentioned constantly.
+  const facts = categoryKey === "ALLYONO" ? await getConfirmedFacts() : [];
 
   return formatContext({
     environment: group.type,

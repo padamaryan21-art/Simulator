@@ -43,7 +43,7 @@ export async function waitForAccountSlot(
   shouldAbort: () => Promise<boolean>,
 ): Promise<boolean> {
   const redis = getSharedConnection();
-  const key = `lakiph:acct-gap:${accountId}`;
+  const key = `allyono:acct-gap:${accountId}`;
   for (;;) {
     const ok = await redis.set(key, "1", "PX", gapMs, "NX");
     if (ok === "OK") return true;
