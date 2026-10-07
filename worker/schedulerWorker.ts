@@ -4,6 +4,7 @@ import { enqueueConversation } from "../src/server/queues/conversationQueue";
 import { createRedisConnection } from "../src/server/queues/connection";
 import { messageQueue, enqueueMessageSend } from "../src/server/queues/messageQueue";
 import { QUEUES, type SchedulerJob } from "../src/server/queues/names";
+import { runCleanupIfDue } from "../src/server/maintenance/cleanup";
 import { getAutomationState } from "../src/server/scheduler/control";
 import {
   claimDueRuns,
@@ -54,6 +55,7 @@ export async function tick() {
   await syncFinishedRuns();
   const requeued = await requeueStaleRuns();
   const recovered = await recoverStuckSessions();
+  await runCleanupIfDue();
   const state = await getAutomationState();
   if (state !== "RUNNING") return { state, requeued, recovered, planned: 0, dispatched: 0 };
 
