@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Copy, Download, FileUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -53,8 +53,8 @@ export function ImportWizard() {
   const group = privateGroups.find((g) => g.id === groupChoice) ?? privateGroups[0];
 
   const [file, setFile] = useState<File | null>(null);
-  const [minSize, setMinSize] = useState(15);
-  const [maxSize, setMaxSize] = useState(35);
+  const [minSize, setMinSize] = useState(300);
+  const [maxSize, setMaxSize] = useState(500);
   const [result, setResult] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [dropFlagged, setDropFlagged] = useState(true);
@@ -112,23 +112,6 @@ export function ImportWizard() {
       toast.error(e instanceof Error ? e.message : "Import failed");
     }
   };
-
-  const prompt = (() => {
-    const who = (personas ?? [])
-      .filter((p) => p.active)
-      .map((p) => `- ${p.name}${p.personality ? `: ${p.personality}` : ""}`)
-      .join("\n");
-    return `Write 50 separate casual group-chat conversations in natural Filipino (Tagalog / Taglish) between these friends:
-${who || "- (add personas first)"}
-
-Output ONE table with exactly these columns: conversation, topic, speaker, message
-- "conversation": a number; all rows of one conversation share it.
-- "speaker": exactly one of the names above.
-- Each conversation has 12 to 30 messages. Not everyone speaks in every conversation.
-- Everyday topics only: food, work, family, weather, hobbies, shopping, movies, music, weekends.
-- Vary message length, slang and emoji; keep each persona's personality consistent.
-Rules: no links or phone numbers; no talk about winning money, betting tips or "lucky" games; no promotions, no urging anyone to register, deposit or play; no fake testimonials.`;
-  })();
 
   const flaggedCount = result
     ? Object.entries(result.issues.byCode)
@@ -195,7 +178,7 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
                 id="min"
                 type="number"
                 min={4}
-                max={200}
+                max={500}
                 value={minSize}
                 onChange={(e) => setMinSize(Number(e.target.value))}
               />
@@ -206,7 +189,7 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
                 id="max"
                 type="number"
                 min={4}
-                max={200}
+                max={500}
                 value={maxSize}
                 onChange={(e) => setMaxSize(Number(e.target.value))}
               />
@@ -214,7 +197,8 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
           </div>
           <p className="text-xs text-muted-foreground">
             The size range is only used when the file has no conversation column or headings; then
-            it is cut into conversations of about this size.
+            it is cut into conversations of about this size. Each conversation allows up to 500
+            lines.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Input
@@ -383,30 +367,6 @@ Rules: no links or phone numbers; no talk about winning money, betting tips or "
         </>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Prompt for the other AI</CardTitle>
-          <CardDescription>
-            Paste this into the AI site you use. It already contains your personas and the format
-            this page reads.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <pre className="max-h-64 overflow-auto rounded-md border bg-muted/30 p-3 text-xs whitespace-pre-wrap">
-            {prompt}
-          </pre>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={async () => {
-              await navigator.clipboard.writeText(prompt);
-              toast.success("Prompt copied");
-            }}
-          >
-            <Copy className="mr-1.5 size-3.5" /> Copy prompt
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 }

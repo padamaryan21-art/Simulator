@@ -4,8 +4,8 @@ import { LIMITS } from "@/server/imports/parse";
 export const previewFieldsSchema = z
   .object({
     groupId: z.string().uuid(),
-    minSize: z.coerce.number().int().min(4).max(200).default(15),
-    maxSize: z.coerce.number().int().min(4).max(200).default(35),
+    minSize: z.coerce.number().int().min(4).max(500).default(300),
+    maxSize: z.coerce.number().int().min(4).max(500).default(500),
   })
   .refine((v) => v.minSize <= v.maxSize, {
     path: ["maxSize"],
