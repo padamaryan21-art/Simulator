@@ -3,6 +3,7 @@ import { Api, type TelegramClient } from "telegram";
 import { CustomFile } from "telegram/client/uploads";
 import { isDryRun } from "@/lib/env";
 import { childLogger } from "@/lib/logger";
+import { dropClient } from "./client";
 import { connectAccount } from "./connection";
 import { TelegramServiceError, normalizeTelegramError } from "./errors";
 import { parseTelegramLink } from "./groups";
@@ -55,6 +56,20 @@ function safeParse(url: string) {
   }
 }
 
+function isInterDcError(err: unknown): boolean {
+  const msg =
+    (err as { errorMessage?: string }).errorMessage ??
+    (err as { message?: string }).message ??
+    "";
+  return msg.includes("INTERDC");
+}
+
+function clearEntityCache(accountId: string) {
+  for (const key of [...entities.keys()]) {
+    if (key.startsWith(`${accountId}:`)) entities.delete(key);
+  }
+}
+
 /**
  * Sends one message as a connected account. This is the ONLY function that posts to Telegram;
  * callers (the conversation sender) are responsible for enforcing approval rules first.
@@ -74,6 +89,22 @@ export async function sendMessage(accountId: string, target: ChatTarget, text: s
     log.info({ accountId, messageId: sent.id }, "message sent");
     return { telegramMessageId: sent.id };
   } catch (err) {
+    if (isInterDcError(err)) {
+      log.info({ accountId }, "INTERDC error — dropping client and retrying");
+      clearEntityCache(accountId);
+      await dropClient(accountId);
+      try {
+        const client2 = await connectAccount(accountId);
+        const entity2 = await resolveChat(accountId, client2, target);
+        const sent2 = await client2.sendMessage(entity2, { message: text });
+        log.info({ accountId, messageId: sent2.id }, "message sent after interdc retry");
+        return { telegramMessageId: sent2.id };
+      } catch (retryErr) {
+        const e2 = retryErr instanceof TelegramServiceError ? retryErr : normalizeTelegramError(retryErr);
+        log.warn({ accountId, code: e2.code }, "send failed after interdc retry");
+        throw e2;
+      }
+    }
     const e = err instanceof TelegramServiceError ? err : normalizeTelegramError(err);
     log.warn({ accountId, code: e.code, retryAfter: e.retryAfterSeconds }, "send failed");
     throw e;
@@ -105,6 +136,27 @@ export async function sendImage(
     log.info({ accountId, messageId: sent.id }, "picture sent");
     return { telegramMessageId: sent.id };
   } catch (err) {
+    if (isInterDcError(err)) {
+      log.info({ accountId }, "INTERDC error — dropping client and retrying picture send");
+      clearEntityCache(accountId);
+      await dropClient(accountId);
+      try {
+        const client2 = await connectAccount(accountId);
+        const entity2 = await resolveChat(accountId, client2, target);
+        const file2 = new CustomFile(image.filename, image.data.byteLength, "", image.data);
+        const sent2 = await client2.sendFile(entity2, {
+          file: file2,
+          caption: image.caption,
+          forceDocument: false,
+        });
+        log.info({ accountId, messageId: sent2.id }, "picture sent after interdc retry");
+        return { telegramMessageId: sent2.id };
+      } catch (retryErr) {
+        const e2 = retryErr instanceof TelegramServiceError ? retryErr : normalizeTelegramError(retryErr);
+        log.warn({ accountId, code: e2.code }, "picture send failed after interdc retry");
+        throw e2;
+      }
+    }
     const e = err instanceof TelegramServiceError ? err : normalizeTelegramError(err);
     log.warn({ accountId, code: e.code, retryAfter: e.retryAfterSeconds }, "picture send failed");
     throw e;
