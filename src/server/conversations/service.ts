@@ -388,6 +388,40 @@ export async function startSend(sessionId: string, userId: string | null) {
   return { started: approved.length };
 }
 
+/**
+ * Resets a FAILED session so sending can continue from the point it stopped.
+ * FAILED messages are put back to APPROVED; the session goes to PENDING_APPROVAL,
+ * then startSend is called immediately.
+ */
+export async function resumeSend(sessionId: string, userId: string | null) {
+  const data = await getSession(sessionId);
+  if (!data) throw new NotFoundError("Conversation not found");
+  const { session } = data;
+  if (session.status !== "FAILED") throw new RuleError("Only FAILED conversations can be resumed.");
+
+  await db
+    .update(conversationMessages)
+    .set({ status: "APPROVED", errorMessage: null })
+    .where(
+      and(
+        eq(conversationMessages.sessionId, sessionId),
+        eq(conversationMessages.status, "FAILED"),
+      ),
+    );
+  await db
+    .update(conversationSessions)
+    .set({ status: "PENDING_APPROVAL", endedAt: null })
+    .where(eq(conversationSessions.id, sessionId));
+
+  await writeLog("info", "send", "Conversation resumed after failure", {
+    sessionId,
+    ...(userId ? { actorId: userId } : {}),
+  });
+
+  await startSend(sessionId, userId);
+  return { ok: true };
+}
+
 export async function cancelSession(sessionId: string, userId: string) {
   await db
     .update(conversationMessages)

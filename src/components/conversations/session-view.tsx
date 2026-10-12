@@ -195,6 +195,15 @@ export function SessionView({ id }: { id: string }) {
               Cancel sending
             </Button>
           )}
+          {session.status === "FAILED" && (
+            <Button
+              onClick={() => run(act.resume.mutateAsync(), "Resuming…")}
+              disabled={act.resume.isPending}
+            >
+              <RefreshCw className="mr-1 size-4" />
+              {act.resume.isPending ? "Resuming…" : "Resume sending"}
+            </Button>
+          )}
           {editable && !preview && (
             <>
               <Button

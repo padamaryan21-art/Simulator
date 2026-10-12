@@ -96,6 +96,7 @@ export function useSessionActions(sessionId: string) {
         apiFetch(`/api/conversation-messages/${id}/regenerate`, { method: "POST" }),
       onSuccess: refresh,
     }),
+    resume: useMutation({ mutationFn: () => post("resume"), onSuccess: refresh }),
   };
 }
 
