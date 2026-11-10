@@ -1,14 +1,12 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Download, FileUp } from "lucide-react";
+import { CheckCircle2, Download, FileUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -31,16 +29,6 @@ import { usePersonas } from "@/features/personas/hooks";
 import { useGroups } from "@/features/telegram/hooks";
 
 const SKIP = "__skip__";
-const CODE_LABEL: Record<string, string> = {
-  win_claim: "claims winning money",
-  promo_language: "promotional wording",
-  link: "contains a link",
-  unverified_number: "figure not in confirmed facts",
-  allyono_mentions: "mentions AllYono too often",
-  repetition: "near-duplicate line",
-  same_speaker_run: "same person 3+ times in a row",
-  too_long: "over 600 characters",
-};
 
 export function ImportWizard() {
   const { data: groups } = useGroups();
@@ -57,7 +45,6 @@ export function ImportWizard() {
   const [maxSize, setMaxSize] = useState(500);
   const [result, setResult] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [dropFlagged, setDropFlagged] = useState(true);
   const [done, setDone] = useState<{ conversations: number; lines: number } | null>(null);
 
   const members = (personas ?? []).filter((p) => group?.participantIds.includes(p.id) && p.active);
@@ -75,16 +62,13 @@ export function ImportWizard() {
     }
   };
 
-  // What will actually be imported, given the mapping and the "leave out flagged lines" choice.
   const payload = (() => {
     if (!result || !group) return null;
-    const severe = new Set(result.issues.severe);
     const conversations = result.conversations
       .map((c) => ({
         title: c.title,
         messages: c.lines
           .filter((l) => mapping[l.speaker] && mapping[l.speaker] !== SKIP)
-          .filter((l) => !(dropFlagged && l.flags?.some((f) => severe.has(f))))
           .map((l) => ({ personaId: mapping[l.speaker], text: l.text })),
       }))
       .filter(
@@ -112,12 +96,6 @@ export function ImportWizard() {
       toast.error(e instanceof Error ? e.message : "Import failed");
     }
   };
-
-  const flaggedCount = result
-    ? Object.entries(result.issues.byCode)
-        .filter(([c]) => result.issues.severe.includes(c))
-        .reduce((n, [, v]) => n + v, 0)
-    : 0;
 
   return (
     <div className="space-y-6">
@@ -280,58 +258,7 @@ export function ImportWizard() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">3. Content check</CardTitle>
-              <CardDescription>
-                The same rules as AI-written conversations are applied to the uploaded text.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {Object.keys(result.issues.byCode).length === 0 ? (
-                <p className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="size-4 text-green-600" /> No problems found.
-                </p>
-              ) : (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(result.issues.byCode).map(([code, n]) => (
-                      <Badge
-                        key={code}
-                        variant={result.issues.severe.includes(code) ? "destructive" : "outline"}
-                      >
-                        {CODE_LABEL[code] ?? code}: {n}
-                      </Badge>
-                    ))}
-                  </div>
-                  {flaggedCount > 0 && (
-                    <label className="flex items-start gap-2 text-sm">
-                      <Checkbox
-                        checked={dropFlagged}
-                        onCheckedChange={(c) => setDropFlagged(Boolean(c))}
-                        className="mt-0.5"
-                      />
-                      <span>
-                        Leave out the lines flagged as winning claims, promotions, links or
-                        unverified figures (recommended).
-                      </span>
-                    </label>
-                  )}
-                  <ul className="space-y-1 text-xs text-muted-foreground">
-                    {result.issues.examples.slice(0, 6).map((x, i) => (
-                      <li key={i}>
-                        <AlertTriangle className="mr-1 inline size-3" /> conversation{" "}
-                        {x.conversation}, line {x.line} ({CODE_LABEL[x.code] ?? x.code}): &ldquo;
-                        {x.text}&rdquo;
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">4. Preview and import</CardTitle>
+              <CardTitle className="text-base">3. Preview and import</CardTitle>
               <CardDescription>
                 {payload.conversations.length} conversation(s) · {payload.lines.toLocaleString()}{" "}
                 lines will be imported.
@@ -366,7 +293,6 @@ export function ImportWizard() {
           </Card>
         </>
       )}
-
     </div>
   );
 }
