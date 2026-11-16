@@ -25,6 +25,7 @@ async function main() {
   const { beatWorkerHeartbeat, clearWorkerHeartbeat } =
     await import("../src/server/queues/workerStatus");
   const { closeSharedConnection } = await import("../src/server/queues/connection");
+  const { getQueue } = await import("../src/server/queues/conversationQueue");
   const { releaseAllClients } = await import("../src/server/telegram/client");
   const { writeLog } = await import("../src/server/conversations/logs");
   const { captureError } = await import("../src/lib/monitoring");
@@ -47,6 +48,44 @@ async function main() {
     w.on("error", (err) => logger.warn({ queue: w.name, err: err.message }, "worker error"));
   }
 
+  /**
+   * BullMQ's own stall-detection only protects a job that already became ACTIVE. It has no
+   * detection for a worker whose poll loop silently stops pulling new jobs at all (observed:
+   * the message-send worker's dedicated connection went idle for 50+ minutes - no bzpopmin -
+   * while jobs piled up in "waiting" and the unrelated heartbeat kept ticking the whole time).
+   * If a queue has waiting jobs but zero active ones for several checks in a row, force-exit so
+   * Railway's restartPolicyType "ALWAYS" brings up a fresh process with fresh connections.
+   */
+  const STUCK_CHECKS = 3;
+  const stuckStreak = new Map<string, number>();
+  const watchdog = setInterval(() => {
+    void (async () => {
+      for (const w of workers) {
+        try {
+          const counts = await getQueue(w.name).getJobCounts("waiting", "active");
+          const stuck = (counts.waiting ?? 0) > 0 && (counts.active ?? 0) === 0;
+          const streak = stuck ? (stuckStreak.get(w.name) ?? 0) + 1 : 0;
+          stuckStreak.set(w.name, streak);
+          if (streak >= STUCK_CHECKS) {
+            logger.error(
+              { queue: w.name, waiting: counts.waiting },
+              "worker queue stuck (waiting jobs, nothing active); restarting process",
+            );
+            await writeLog(
+              "error",
+              "worker",
+              `Queue ${w.name} stuck: ${counts.waiting} waiting, 0 active; restarting`,
+            ).catch(() => undefined);
+            process.exit(1);
+          }
+        } catch {
+          /* a transient Redis error here should not itself trigger a restart */
+        }
+      }
+    })();
+  }, 60_000);
+  watchdog.unref();
+
   await beatWorkerHeartbeat();
   const heartbeat = setInterval(() => void beatWorkerHeartbeat().catch(() => undefined), 10_000);
   await startSchedulerTick();
@@ -59,6 +98,7 @@ async function main() {
     stopping = true;
     logger.info({ signal }, "worker shutting down");
     clearInterval(heartbeat);
+    clearInterval(watchdog);
     await clearWorkerHeartbeat().catch(() => undefined);
     // Do not wait for long send jobs: they are recovered by the next worker's tick.
     await Promise.all(workers.map((w) => w.close(true).catch(() => undefined)));
