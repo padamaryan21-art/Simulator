@@ -5,6 +5,7 @@ import {
   approveMessages,
   cancelSession,
   enableSending,
+  rescueSend,
   resumeSend,
   startSend,
 } from "@/server/conversations/service";
@@ -12,7 +13,7 @@ import { approveSchema } from "@/validators/conversations";
 
 const params = z.object({
   id: z.string().uuid(),
-  action: z.enum(["approve", "enable-sending", "send", "cancel", "resume"]),
+  action: z.enum(["approve", "enable-sending", "send", "cancel", "resume", "rescue"]),
 });
 
 export const POST = route<{ id: string; action: string }>(async ({ params: raw, body, userId }) => {
@@ -30,6 +31,8 @@ export const POST = route<{ id: string; action: string }>(async ({ params: raw, 
         return { ok: true };
       case "resume":
         return resumeSend(id, userId);
+      case "rescue":
+        return rescueSend(id, userId);
     }
   });
 });

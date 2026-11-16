@@ -422,6 +422,30 @@ export async function resumeSend(sessionId: string, userId: string | null) {
   return { ok: true };
 }
 
+/**
+ * Rescues a session stuck in SENDING (worker crashed, job lost).
+ * Resets to PENDING_APPROVAL so startSend can claim it again; any in-flight sender
+ * will see isCancelled() = true on its next check and stop cleanly.
+ */
+export async function rescueSend(sessionId: string, userId: string | null) {
+  const data = await getSession(sessionId);
+  if (!data) throw new NotFoundError("Conversation not found");
+  if (data.session.status !== "SENDING") throw new RuleError("Only stuck SENDING sessions can be restarted.");
+
+  await db
+    .update(conversationSessions)
+    .set({ status: "PENDING_APPROVAL", startedAt: null })
+    .where(and(eq(conversationSessions.id, sessionId), eq(conversationSessions.status, "SENDING")));
+
+  await writeLog("warn", "send", "Stuck SENDING session restarted", {
+    sessionId,
+    ...(userId ? { actorId: userId } : {}),
+  });
+
+  await startSend(sessionId, userId);
+  return { ok: true };
+}
+
 export async function cancelSession(sessionId: string, userId: string) {
   await db
     .update(conversationMessages)

@@ -97,6 +97,7 @@ export function useSessionActions(sessionId: string) {
       onSuccess: refresh,
     }),
     resume: useMutation({ mutationFn: () => post("resume"), onSuccess: refresh }),
+    rescue: useMutation({ mutationFn: () => post("rescue"), onSuccess: refresh }),
   };
 }
 

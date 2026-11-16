@@ -188,12 +188,22 @@ export function SessionView({ id }: { id: string }) {
         </span>
         <div className="flex gap-2">
           {session.status === "SENDING" && (
-            <Button
-              variant="destructive"
-              onClick={() => run(act.cancel.mutateAsync(), "Cancelled")}
-            >
-              Cancel sending
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => run(act.rescue.mutateAsync(), "Restarting…")}
+                disabled={act.rescue.isPending}
+              >
+                <RefreshCw className="mr-1 size-4" />
+                {act.rescue.isPending ? "Restarting…" : "Restart sending"}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => run(act.cancel.mutateAsync(), "Cancelled")}
+              >
+                Cancel sending
+              </Button>
+            </>
           )}
           {session.status === "FAILED" && (
             <Button
