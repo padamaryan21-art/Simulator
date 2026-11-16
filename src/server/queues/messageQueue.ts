@@ -12,6 +12,13 @@ export const messageQueue = () =>
     },
   });
 
-/** jobId = session id, so a session can never be queued for sending twice. */
-export const enqueueMessageSend = (sessionId: string) =>
-  messageQueue().add("send", { sessionId }, { jobId: `send-${sessionId}` });
+/**
+ * Enqueues a send job. `attempt` defaults to 0 (first send); rescue passes a non-zero value so
+ * the jobId is unique and BullMQ does not silently skip it because an old failed job still exists.
+ */
+export const enqueueMessageSend = (sessionId: string, attempt = 0) =>
+  messageQueue().add(
+    "send",
+    { sessionId },
+    { jobId: attempt === 0 ? `send-${sessionId}` : `send-${sessionId}-${attempt}` },
+  );

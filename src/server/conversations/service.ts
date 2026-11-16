@@ -328,7 +328,7 @@ export async function enableSending(sessionId: string) {
 }
 
 /** Validates everything, marks the session SENDING and starts the sender in the background. */
-export async function startSend(sessionId: string, userId: string | null) {
+export async function startSend(sessionId: string, userId: string | null, attempt = 0) {
   const data = await getSession(sessionId);
   if (!data) throw new NotFoundError("Conversation not found");
   const { session, group, messages } = data;
@@ -384,7 +384,7 @@ export async function startSend(sessionId: string, userId: string | null) {
     messages: approved.length,
     ...(userId ? { actorId: userId } : {}),
   });
-  await dispatchSend(sessionId, userId);
+  await dispatchSend(sessionId, userId, attempt);
   return { started: approved.length };
 }
 
@@ -442,7 +442,8 @@ export async function rescueSend(sessionId: string, userId: string | null) {
     ...(userId ? { actorId: userId } : {}),
   });
 
-  await startSend(sessionId, userId);
+  // Pass a non-zero attempt so the BullMQ jobId differs from any stuck old job.
+  await startSend(sessionId, userId, Date.now());
   return { ok: true };
 }
 
@@ -471,11 +472,12 @@ export async function cancelSession(sessionId: string, userId: string) {
 /**
  * Sends go through the BullMQ worker when one is online (restart-safe, concurrency-limited).
  * With no worker, or no Redis, they run in this process so manual sends always work.
+ * `attempt` is forwarded to the jobId so a rescue re-enqueue is never silently skipped.
  */
-async function dispatchSend(sessionId: string, userId: string | null) {
+async function dispatchSend(sessionId: string, userId: string | null, attempt = 0) {
   if (redisConfigured() && (await isWorkerAlive())) {
     try {
-      await enqueueMessageSend(sessionId);
+      await enqueueMessageSend(sessionId, attempt);
       return;
     } catch {
       /* fall through to in-process sending */
